@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-compatible" content="IE-edge">  
+    <title>Cs - CSpublic</title>
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+   <h1 id="doce">Publica tus imágenes y videos más importantes</h1>
+   
+   <p>Bienvenido a CSpublic. Aquí puedes publicar tus imágenes y videos más importantes en internet y compartirlos en tiempo real.</p>
+     <br>
+     
+    <input type="file" id="fileInput" accept="image/*, video/*" placeholder="dos" style="width: 100%; box-sizing: border-box; padding: 5px;">
+    <br>
+    <br>
+  
+    <div id="multimedia"></div>
+  
+    <button onclick="guardarMultimedia()" id="btn1" style="border: 2px solid hsla(130,50%,50%,0.9); width: 100%; height: 50px; font-size: 16px; margin-top: 10px;">PUBLICAR MULTIMEDIA</button><br>
+    <style>
+      #doce{
+        color:hsla(130,50%,50%,0.9);
+      }
+      #fileInput{
+        border: 2px solid hsla(130,50%,50%,0.9); width: 100%; height: 50px; font-size: 16px; margin-top: 10px; 
+      }
+      #quince{
+        border: 2px solid hsla(130,50%,50%,0.9); width: 100%; height: 50px; font-size: 16px; margin-top: 10px; 
+      }
+    </style>
+  
+    <script>
+        // Código JavaScript
+        // Autor: Tu Nombre
+        // Contacto: tu@email.com
+
+        var apiUrl="https://github.com/alexyomer/alexyomer.github.io/tree/main"; // Cambia esto con la URL de tu servidor API
+
+        function guardarMultimedia() {
+            var fileInput = document.getElementById("fileInput");
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function(event) {
+                var buffer = event.target.result;
+                var nombre = file.name;
+                var tipo = file.type;
+                var descripcion = prompt("Ingrese una descripción para el multimedia:");
+
+                var formData = new FormData();
+                formData.append("multimedia", file);
+                formData.append("nombre", nombre);
+                formData.append("tipo", tipo);
+                formData.append("descripcion", descripcion);
+
+                fetch(apiUrl, {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Multimedia guardado exitosamente");
+                    mostrarMultimedia();
+                })
+                .catch(error => {
+                    console.error("Error guardando el multimedia:", error);
+                });
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function mostrarMultimedia() {
+            fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                var multimediaDiv = document.getElementById("multimedia");
+                multimediaDiv.innerHTML = "";
+
+                data.forEach(item => {
+                    var multimediaElement;
+
+                    if (item.tipo && item.tipo.startsWith("image")) {
+                        multimediaElement = document.createElement("img");
+                        multimediaElement.style.width = "100%"; /* Cambiado a 100% */
+                        multimediaElement.style.height = "auto"; /* Ajusta la altura automáticamente */
+                        multimediaElement.style.display = "block"; /* Para evitar el espacio extra debajo de la multimedia */
+                    } else if (item.tipo && item.tipo.startsWith("video")) {
+                        multimediaElement = document.createElement("video");
+                        multimediaElement.controls = true; // Añade los controles de reproducción
+                        multimediaElement.style.width = "100%"; /* Cambiado a 100% */
+                        multimediaElement.style.height = "auto"; /* Ajusta la altura automáticamente */
+                        multimediaElement.style.display = "block"; /* Para evitar el espacio extra debajo de la multimedia */
+                    } else {
+                        console.error("Tipo de archivo no soportado:", item.tipo);
+                        return;
+                    }
+
+                    multimediaElement.src = item.multimedia;
+
+                    var multimediaContainer = document.createElement("div");
+
+                    var nombreElement = document.createElement("p");
+                    nombreElement.textContent = "Nombre: " + item.nombre;
+
+                    var descripcionElement = document.createElement("p");
+                    descripcionElement.textContent = "Descripción: " + item.descripcion;
+
+                    var deleteButton = document.createElement("button");
+                    deleteButton.id="quince";
+                    deleteButton.textContent = "Eliminar";
+                    deleteButton.onclick = function() {
+                        eliminarMultimedia(item.id);
+                    };
+
+                    deleteButton.appendChild(document.createElement("br")); // Agregar un salto de línea después del botón "Eliminar"
+                    multimediaContainer.appendChild(nombreElement);
+                    multimediaContainer.appendChild(descripcionElement);
+                    multimediaContainer.appendChild(multimediaElement);
+                    multimediaContainer.appendChild(deleteButton);
+                    multimediaContainer.appendChild(document.createElement("br")); // Agregar un salto de línea después del botón "Eliminar"
+                    multimediaContainer.appendChild(document.createElement("br")); // Agregar un salto de línea adicional
+
+                    multimediaDiv.appendChild(multimediaContainer);
+                });
+            })
+            .catch(error => {
+                console.error("Error mostrando multimedia:", error);
+            });
+        }
+
+        function eliminarMultimedia(id) {
+            fetch(apiUrl + "/" + id, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Multimedia eliminado exitosamente");
+                mostrarMultimedia();
+            })
+            .catch(error => {
+                console.error("Error eliminando el multimedia:", error);
+            });
+        }
+    </script>
+</body>
+</html>
